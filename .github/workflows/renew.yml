@@ -26,6 +26,7 @@ jobs:
         # 将 USERS_JSON 配置在 GitHub Repository Secrets 中
         # 格式: [{"username": "xxx", "password": "xxx"}, ...]
         USERS_JSON: ${{ secrets.USERS_JSON }}
+        HTTP_PROXY: ${{ secrets.HTTP_PROXY }}
       run: node action_renew.js
 
     - name: Upload Screenshots
