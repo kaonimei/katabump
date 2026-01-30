@@ -141,7 +141,7 @@ async function launchChrome() {
         `--remote-debugging-port=${DEBUG_PORT}`,
         '--no-first-run',
         '--no-default-browser-check',
-        '--headless=new', // 云端必须 headless
+        // '--headless=new', // (已被注释) 使用 xvfb-run 时不需要 headless 模式，这样可以模拟有头浏览器增加成功率
         '--disable-gpu',
         '--window-size=1280,720',
     ];
@@ -417,6 +417,18 @@ async function attemptTurnstileCdp(page) {
                     // D. 准备点击确认
                     const confirmBtn = modal.getByRole('button', { name: 'Renew' });
                     if (await confirmBtn.isVisible()) {
+
+                        // User Requested: Screenshot BEFORE final click
+                        const fs = require('fs');
+                        const path = require('path');
+                        const photoDir = path.join(process.cwd(), 'screenshots');
+                        if (!fs.existsSync(photoDir)) fs.mkdirSync(photoDir, { recursive: true });
+                        const safeUser = user.username.replace(/[^a-z0-9]/gi, '_');
+                        const tsScreenshotName = `${safeUser}_Turnstile_${attempt}.png`;
+                        try {
+                            await page.screenshot({ path: path.join(photoDir, tsScreenshotName), fullPage: true });
+                            console.log(`   >> 📸 Snapshot saved: ${tsScreenshotName}`);
+                        } catch (e) { }
 
                         // User Request: 找不到的话这个循环直接下一步点击renew，然后检测有没有Please complete the captcha to continue
                         console.log('   >> Clicking Renew confirm button (regardless of Turnstile status)...');

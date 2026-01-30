@@ -12,7 +12,7 @@ chromium.use(stealth);
 const CHROME_PATH = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const USER_DATA_DIR = path.join(__dirname, 'ChromeData_Katabump');
 const DEBUG_PORT = 9222;
-const HEADLESS = true;
+const HEADLESS = false;
 // const HTTP_PROXY = ""
 // --- Proxy Configuration ---
 const HTTP_PROXY = process.env.HTTP_PROXY; // e.g., http://user:pass@1.2.3.4:8080 or http://1.2.3.4:8080
@@ -459,6 +459,17 @@ async function attemptTurnstileCdp(page) {
                     // D. 准备点击确认
                     const confirmBtn = modal.getByRole('button', { name: 'Renew' });
                     if (await confirmBtn.isVisible()) {
+
+                        // User Requested: Screenshot BEFORE final click (Regardless of CDP status)
+                        const photoDir = path.join(__dirname, 'photo');
+                        if (!fs.existsSync(photoDir)) fs.mkdirSync(photoDir, { recursive: true });
+                        const tsScreenshotName = `${user.username}_Turnstile_${attempt}.png`;
+                        try {
+                            await page.screenshot({ path: path.join(photoDir, tsScreenshotName), fullPage: true });
+                            console.log(`   >> 📸 Snapshot saved: ${tsScreenshotName}`);
+                        } catch (e) {
+                            console.log('   >> Failed to take Turnstile snapshot:', e.message);
+                        }
 
                         // User Request: 找不到的话这个循环直接下一步点击renew，然后检测有没有Please complete the captcha to continue
                         console.log('   >> Clicking Renew confirm button (regardless of Turnstile status)...');
