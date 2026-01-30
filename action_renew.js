@@ -146,12 +146,16 @@ async function launchChrome() {
         '--window-size=1280,720',
         '--no-sandbox',
         '--disable-setuid-sandbox',
+        '--user-data-dir=/tmp/chrome_user_data' // 必须指定用户数据目录，否则远程调试可能失败
     ];
 
     if (PROXY_CONFIG) {
         args.push(`--proxy-server=${PROXY_CONFIG.server}`);
         args.push('--proxy-bypass-list=<-loopback>');
     }
+    // 添加针对 Linux 环境的额外稳定性参数
+    args.push('--disable-dev-shm-usage'); // 避免共享内存不足
+
 
     const chrome = spawn(CHROME_PATH, args, {
         detached: true,
