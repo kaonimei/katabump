@@ -144,6 +144,8 @@ async function launchChrome() {
         // '--headless=new', // (已被注释) 使用 xvfb-run 时不需要 headless 模式，这样可以模拟有头浏览器增加成功率
         '--disable-gpu',
         '--window-size=1280,720',
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
     ];
 
     if (PROXY_CONFIG) {
@@ -153,7 +155,7 @@ async function launchChrome() {
 
     const chrome = spawn(CHROME_PATH, args, {
         detached: true,
-        stdio: 'ignore'
+        stdio: ['ignore', 'inherit', 'inherit']
     });
     chrome.unref();
 
