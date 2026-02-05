@@ -3,7 +3,7 @@ name: Katabump Auto Renew
 on:
   schedule:
     # 每天 UTC 0点 (北京时间 8点) 运行
-    - cron: '0 0 * * *'
+    - cron: '0 0 */2 * *'
   workflow_dispatch: # 允许手动触发
 
 jobs:
@@ -35,10 +35,3 @@ jobs:
         TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
       # 使用 xvfb-run 模拟有头环境运行
       run: xvfb-run --auto-servernum --server-args="-screen 0 1280x720x24" node action_renew.js
-
-    - name: Upload Screenshots
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: screenshots
-        path: screenshots/
