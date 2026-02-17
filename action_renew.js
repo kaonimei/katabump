@@ -361,6 +361,42 @@ async function attemptTurnstileCdp(page) {
                 const pwdInput = page.getByRole('textbox', { name: 'Password' });
                 await pwdInput.fill(user.password);
                 await page.waitForTimeout(500);
+
+                // --- Cloudflare Turnstile Bypass for Login ---
+                console.log('   >> 正在登录前检查 Turnstile (使用 CDP 绕过)...');
+                let cdpClickResult = false;
+                for (let findAttempt = 0; findAttempt < 15; findAttempt++) {
+                    cdpClickResult = await attemptTurnstileCdp(page);
+                    if (cdpClickResult) break;
+                    await page.waitForTimeout(1000);
+                }
+
+                if (cdpClickResult) {
+                    console.log('   >> 登录 CDP 点击生效。正在等待最多 10秒 Cloudflare 成功标志...');
+                    for (let waitSec = 0; waitSec < 10; waitSec++) {
+                        const frames = page.frames();
+                        let isSuccess = false;
+                        for (const f of frames) {
+                            if (f.url().includes('cloudflare')) {
+                                try {
+                                    if (await f.getByText('Success!', { exact: false }).isVisible({ timeout: 500 })) {
+                                        isSuccess = true;
+                                        break;
+                                    }
+                                } catch (e) { }
+                            }
+                        }
+                        if (isSuccess) {
+                            console.log('   >> 登录前 Turnstile 验证成功。');
+                            break;
+                        }
+                        await page.waitForTimeout(1000);
+                    }
+                } else {
+                    console.log('   >> 登录前未检测到或未点击 Turnstile，继续操作...');
+                }
+                // --------------------------------------------
+
                 await page.getByRole('button', { name: 'Login', exact: true }).click();
 
                 // User Request: Check for incorrect password
@@ -395,6 +431,7 @@ async function attemptTurnstileCdp(page) {
             let renewSuccess = false;
             // 2. 一个扁平化的主循环：尝试 Renew 整个流程 (最多 20 次)
             for (let attempt = 1; attempt <= 20; attempt++) {
+                let hasCaptchaError = false;
 
                 // 1. 如果是重试 (attempt > 1)，说明之前失败了或者刚刷新完页面
                 // 我们直接开始寻找 Renew 按钮
