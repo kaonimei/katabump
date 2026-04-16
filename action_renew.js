@@ -8,6 +8,15 @@ const http = require('http');
 
 const TG_BOT_TOKEN = process.env.TG_BOT_TOKEN;
 const TG_CHAT_ID = process.env.TG_CHAT_ID;
+const BARK_DEVICE_KEY = process.env.BARK_DEVICE_KEY;
+
+async function sendNotifications(message, imagePath = null) {
+    // 同时发送消息
+    await Promise.all([
+        sendTelegramMessage(message, imagePath),
+        sendBarkNotification(message, imagePath)
+    ]);
+}
 
 async function sendTelegramMessage(message, imagePath = null) {
     if (!TG_BOT_TOKEN || !TG_CHAT_ID) return;
@@ -40,6 +49,30 @@ async function sendTelegramMessage(message, imagePath = null) {
         });
     }
 }
+
+async function sendBarkNotification(message, imagePath = null) {
+    if (!BARK_DEVICE_KEY) return;
+
+    try {
+        const url = 'https://api.day.app/push';
+        const payload = {
+            title: 'KataBump 续期报告',
+            markdown: message,
+            group: 'KataBump',
+            device_key: BARK_DEVICE_KEY
+        };
+        await axios.post(url, payload, {
+            headers: {
+                'Content-Type': 'application/json; charset=utf-8'
+            }
+        });
+        console.log('[Bark] Message sent.');
+    } catch (e) {
+        console.error('[Bark] Failed to send message:', e.message);
+    }
+}
+
+export { sendBarkNotification };
 
 // 启用 stealth 插件
 chromium.use(stealth);
@@ -82,7 +115,7 @@ const INJECTED_SCRIPT = `
         }
         let screenX = getRandomInt(800, 1200);
         let screenY = getRandomInt(400, 600);
-        
+
         Object.defineProperty(MouseEvent.prototype, 'screenX', { value: screenX });
         Object.defineProperty(MouseEvent.prototype, 'screenY', { value: screenY });
     } catch (e) { }
@@ -90,10 +123,10 @@ const INJECTED_SCRIPT = `
     // 2. 简单的 attachShadow Hook
     try {
         const originalAttachShadow = Element.prototype.attachShadow;
-        
+
         Element.prototype.attachShadow = function(init) {
             const shadowRoot = originalAttachShadow.call(this, init);
-            
+
             if (shadowRoot) {
                 const checkAndReport = () => {
                     const checkbox = shadowRoot.querySelector('input[type="checkbox"]');
@@ -407,7 +440,7 @@ async function attemptTurnstileCdp(page) {
                         const failShotPath = path.join(photoDir, `${safeUsername}.png`);
                         try { await page.screenshot({ path: failShotPath, fullPage: true }); } catch (e) { }
 
-                        await sendTelegramMessage(`❌ *登录失败*\n用户: ${user.username}\n原因: 账号或密码错误`, failShotPath);
+                        await sendNotifications(`❌ *登录失败*\n用户: ${user.username}\n原因: 账号或密码错误`, failShotPath);
 
                         continue;
                     }
@@ -539,7 +572,7 @@ async function attemptTurnstileCdp(page) {
                                     const skipShotPath = path.join(photoDir, `${safeUser}_skip.png`);
                                     try { await page.screenshot({ path: skipShotPath, fullPage: true }); } catch (e) { }
 
-                                    await sendTelegramMessage(`⏳ *暂无法续期 (跳过)*\n用户: ${user.username}\n原因: 还没到时间\n下次可用: ${dateStr}`, skipShotPath);
+                                    await sendNotifications(`⏳ *暂无法续期 (跳过)*\n用户: ${user.username}\n原因: 还没到时间\n下次可用: ${dateStr}`, skipShotPath);
 
                                     renewSuccess = true; // Mark as done to stop retries
                                     try {
@@ -575,7 +608,7 @@ async function attemptTurnstileCdp(page) {
                             const successShotPath = path.join(photoDir, `${safeUser}_success.png`);
                             try { await page.screenshot({ path: successShotPath, fullPage: true }); } catch (e) { }
 
-                            await sendTelegramMessage(`✅ *续期成功*\n用户: ${user.username}\n状态: 服务器已成功续期！`, successShotPath);
+                            await sendNotifications(`✅ *续期成功*\n用户: ${user.username}\n状态: 服务器已成功续期！`, successShotPath);
                             renewSuccess = true;
                             break;
                         } else {
