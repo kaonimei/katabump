@@ -2,8 +2,7 @@ name: Katabump Auto Renew
 
 on:
   schedule:
-    - cron: '0 12 * * *'
-      timezone: "Asia/Shanghai"
+    - cron: '0 4 * * *'
   workflow_dispatch:
 
 jobs:
@@ -16,7 +15,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v6
       with:
-        node-version: '24'
+        node-version: '20'
 
     - name: Install Dependencies
       run: |
