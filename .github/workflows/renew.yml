@@ -10,12 +10,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
-        node-version: '20'
+        node-version: '24'
 
     - name: Install Dependencies
       run: |
@@ -34,4 +34,6 @@ jobs:
         TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
         BARK_DEVICE_KEY: ${{ secrets.BARK_DEVICE_KEY }}
       # 使用 xvfb-run 模拟有头环境运行
-      run: xvfb-run --auto-servernum --server-args="-screen 0 1280x720x24" node action_renew.js
+      run: |
+        mv action_renew.js action_renew.cjs
+        xvfb-run --auto-servernum --server-args="-screen 0 1280x720x24" node action_renew.cjs
