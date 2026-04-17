@@ -72,8 +72,6 @@ async function sendBarkNotification(message, imagePath = null) {
     }
 }
 
-export { sendBarkNotification };
-
 // 启用 stealth 插件
 chromium.use(stealth);
 
