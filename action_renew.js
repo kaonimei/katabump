@@ -57,7 +57,7 @@ async function sendBarkNotification(message, imagePath = null) {
         const url = 'https://api.day.app/push';
         const payload = {
             title: 'KataBump 续期报告',
-            markdown: message,
+            body: message,
             group: 'KataBump',
             device_key: BARK_DEVICE_KEY
         };
@@ -438,7 +438,7 @@ async function attemptTurnstileCdp(page) {
                         const failShotPath = path.join(photoDir, `${safeUsername}.png`);
                         try { await page.screenshot({ path: failShotPath, fullPage: true }); } catch (e) { }
 
-                        await sendNotifications(`❌ *登录失败*\n用户: ${user.username}\n原因: 账号或密码错误`, failShotPath);
+                        await sendNotifications(`❌ 登录失败\n用户: ${user.username}\n原因: 账号或密码错误`, failShotPath);
 
                         continue;
                     }
@@ -570,7 +570,7 @@ async function attemptTurnstileCdp(page) {
                                     const skipShotPath = path.join(photoDir, `${safeUser}_skip.png`);
                                     try { await page.screenshot({ path: skipShotPath, fullPage: true }); } catch (e) { }
 
-                                    await sendNotifications(`⏳ *暂无法续期 (跳过)*\n用户: ${user.username}\n原因: 还没到时间\n下次可用: ${dateStr}`, skipShotPath);
+                                    await sendNotifications(`⏳ 暂无法续期 (跳过)\n用户: ${user.username}\n原因: 还没到时间\n下次可用: ${dateStr}`, skipShotPath);
 
                                     renewSuccess = true; // Mark as done to stop retries
                                     try {
@@ -606,7 +606,7 @@ async function attemptTurnstileCdp(page) {
                             const successShotPath = path.join(photoDir, `${safeUser}_success.png`);
                             try { await page.screenshot({ path: successShotPath, fullPage: true }); } catch (e) { }
 
-                            await sendNotifications(`✅ *续期成功*\n用户: ${user.username}\n状态: 服务器已成功续期！`, successShotPath);
+                            await sendNotifications(`✅ 续期成功\n用户: ${user.username}\n状态: 服务器已成功续期！`, successShotPath);
                             renewSuccess = true;
                             break;
                         } else {
