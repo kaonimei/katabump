@@ -59,6 +59,7 @@ async function sendBarkNotification(message, imagePath = null) {
             title: 'KataBump 续期报告',
             body: message,
             group: 'KataBump',
+            icon: 'https://katabump.com/assets/images/favicon.png',
             device_key: BARK_DEVICE_KEY
         };
         await axios.post(url, payload, {
